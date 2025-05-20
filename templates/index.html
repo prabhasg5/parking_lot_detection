@@ -166,6 +166,7 @@
             
             <div class="text-center mt-4">
                 <p>Analysis complete! The parking lot data has been processed.</p>
+                <p id="image-info" style="display: none; font-size: 0.9rem; color: #6c757d;"></p>
             </div>
             
             <div class="csv-download text-center">
@@ -305,6 +306,13 @@
                     totalSlotsEl.textContent = data.total_slots;
                     occupiedSlotsEl.textContent = data.occupied_slots;
                     availableSlotsEl.textContent = data.available_slots;
+                    
+                    // Add image info if available
+                    if (data.image_info) {
+                        const infoText = `Image size: ${data.image_info.width}x${data.image_info.height} pixels (${data.image_info.size_kb} KB)`;
+                        document.getElementById('image-info').textContent = infoText;
+                        document.getElementById('image-info').style.display = 'block';
+                    }
                     
                     // Set the CSV download link
                     csvLinkEl.href = '/results/' + data.csv_file;

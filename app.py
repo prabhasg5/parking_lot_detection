@@ -1,9 +1,11 @@
-from flask import Flask, render_template, request, jsonify, send_from_directory
+from flask import Flask, render_template, request, jsonify, send_from_directory, after_this_request
 import os
 import cv2
 import numpy as np
 import pandas as pd
 import base64
+import time
+import uuid
 from werkzeug.utils import secure_filename
 
 # Import the functions from your original code
@@ -27,6 +29,14 @@ os.makedirs(RESULTS_FOLDER, exist_ok=True)
 
 @app.route('/')
 def index():
+    # Prevent caching
+    @after_this_request
+    def add_no_cache(response):
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        return response
+        
     return render_template('index.html')
 
 @app.route('/uploads/<filename>')
@@ -47,19 +57,25 @@ def analyze():
         return jsonify({'error': 'No selected file'}), 400
     
     if file:
-        # Save the uploaded file
-        filename = secure_filename(file.filename)
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(file_path)
-        
-        # Process the image
         try:
-            # Read the image
+            # Add a unique identifier to prevent filename conflicts
+            unique_id = str(uuid.uuid4())[:8]
+            original_filename = secure_filename(file.filename)
+            filename = f"{unique_id}_{original_filename}"
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(file_path)
+            
+            # Process the image
             image = cv2.imread(file_path)
             if image is None:
-                return jsonify({'error': 'Could not read the image.'}), 400
+                return jsonify({'error': 'Could not read the image. Please try another image.'}), 400
             
-            # Get manual count
+            # Check image dimensions
+            h, w = image.shape[:2]
+            if h < 100 or w < 100:
+                return jsonify({'error': 'Image is too small. Please upload a larger image.'}), 400
+            
+            # Get analysis results for this specific image
             manual_results = manual_count_based_on_image(image)
             
             # Export results to CSV
@@ -78,14 +94,19 @@ def analyze():
                 'total_slots': manual_results['Total Number of Slots'],
                 'occupied_slots': manual_results['Occupied Slots'],
                 'available_slots': manual_results['Available Slots'],
-                'csv_file': csv_filename
+                'csv_file': csv_filename,
+                'image_info': {
+                    'width': w,
+                    'height': h,
+                    'size_kb': os.path.getsize(file_path) // 1024
+                }
             })
             
         except Exception as e:
             print(f"Error: {str(e)}")
             import traceback
             traceback.print_exc()
-            return jsonify({'error': str(e)}), 500
+            return jsonify({'error': f"Error processing the image: {str(e)}"}), 500
     
     return jsonify({'error': 'Failed to process the file'}), 500
 
