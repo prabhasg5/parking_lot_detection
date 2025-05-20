@@ -14,11 +14,13 @@ from parking_detection import (
 )
 
 app = Flask(__name__)
+
 UPLOAD_FOLDER = 'uploads'
 RESULTS_FOLDER = 'results'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['RESULTS_FOLDER'] = RESULTS_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(RESULTS_FOLDER, exist_ok=True)
 
@@ -57,22 +59,24 @@ def analyze():
             filename = f"{unique_id}_{original_filename}"
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(file_path)
-
+            
             image = cv2.imread(file_path)
             if image is None:
                 return jsonify({'error': 'Could not read the image. Please try another image.'}), 400
-
+            
             h, w = image.shape[:2]
             if h < 100 or w < 100:
                 return jsonify({'error': 'Image is too small. Please upload a larger image.'}), 400
-        
+            
             results = manual_count_based_on_image(image)
+            
             if 'error' in results:
                 return jsonify({
                     'error': results['error'],
                     'is_parking_lot': False,
                     'message': 'The uploaded image does not appear to be a parking lot. Please upload a clear image of a parking lot.'
                 }), 400
+            
             csv_filename = os.path.splitext(filename)[0] + '_results.csv'
             csv_path = os.path.join(app.config['RESULTS_FOLDER'], csv_filename)
             df = export_results_to_csv(
@@ -81,6 +85,7 @@ def analyze():
                 results['Available Slots'],
                 filename=csv_path
             )
+            
             response_data = {
                 'success': True,
                 'total_slots': results['Total Number of Slots'],
@@ -93,6 +98,7 @@ def analyze():
                     'size_kb': os.path.getsize(file_path) // 1024
                 }
             }
+            
             if app.debug and 'Analysis' in results:
                 response_data['analysis'] = results['Analysis']
             
@@ -105,6 +111,7 @@ def analyze():
             return jsonify({'error': f"Error processing the image: {str(e)}"}), 500
     
     return jsonify({'error': 'Failed to process the file'}), 500
+
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)

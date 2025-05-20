@@ -220,7 +220,6 @@
                 fileInput.click();
             });
             
-            
             fileInput.addEventListener('change', handleFiles);
             
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -248,7 +247,6 @@
                 dropArea.classList.remove('dragover');
             }
             
-           
             dropArea.addEventListener('drop', (e) => {
                 const dt = e.dataTransfer;
                 const files = dt.files;
@@ -257,7 +255,6 @@
             
             function handleFiles(files) {
                 errorMessageEl.style.display = 'none';
-                
                 
                 let fileList = files;
                 if (files.target && files.target.files) {
@@ -268,13 +265,11 @@
                 
                 const file = fileList[0];
                 
-                
                 if (!file.type.match('image.*')) {
                     showError('Please select an image file (JPG, PNG, etc.)');
                     return;
                 }
                 
-             
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     previewImage.src = e.target.result;
@@ -283,14 +278,12 @@
                 reader.readAsDataURL(file);
             }
             
-            
             changeImageBtn.addEventListener('click', () => {
                 previewContainer.style.display = 'none';
                 fileInput.value = '';
                 previewImage.src = '';
             });
             
-           
             analyzeBtn.addEventListener('click', () => {
                 if (!fileInput.files.length) {
                     showError('Please select an image first');
@@ -301,10 +294,8 @@
                 const formData = new FormData();
                 formData.append('file', file);
                 
-               
                 loadingEl.style.display = 'block';
                 
-               
                 fetch('/analyze', {
                     method: 'POST',
                     body: formData
@@ -316,34 +307,28 @@
                     if (data.error) {
                         showError(data.error);
                         
-                       
                         if (data.message) {
                             const errorEl = document.getElementById('error-message');
                             errorEl.innerHTML = `<strong>${data.error}</strong><br>${data.message}`;
-                            
                             
                             errorEl.innerHTML += `<p class="mt-2">Please try uploading a clear image of a parking lot with visible parking spaces.</p>`;
                         }
                         return;
                     }
                     
-                   
                     resultsBox.style.display = 'block';
                     totalSlotsEl.textContent = data.total_slots;
                     occupiedSlotsEl.textContent = data.occupied_slots;
                     availableSlotsEl.textContent = data.available_slots;
                     
-                   
                     if (data.image_info) {
                         const infoText = `Image size: ${data.image_info.width}x${data.image_info.height} pixels (${data.image_info.size_kb} KB)`;
                         document.getElementById('image-info').textContent = infoText;
                         document.getElementById('image-info').style.display = 'block';
                     }
                     
-                    
                     csvLinkEl.href = '/results/' + data.csv_file;
                     csvLinkEl.textContent = 'Download CSV Results';
-                    
                     
                     resultsBox.scrollIntoView({ behavior: 'smooth' });
                 })
@@ -354,14 +339,12 @@
                 });
             });
             
-            
             analyzeNewBtn.addEventListener('click', () => {
                 resultsBox.style.display = 'none';
                 previewContainer.style.display = 'none';
                 fileInput.value = '';
                 previewImage.src = '';
                 
-               
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             });
             
