@@ -5,7 +5,7 @@ A web application that analyzes parking lot images to determine total parking sp
 **Live Demo:** https://parking-lot-analyzer.onrender.com
 
 ## Working screenshot:
-![Parking Lot](Screenshot 2025-05-20 at 11.59.13 PM.png)
+![Parking Lot](Screenshot%202025-05-20%20at%2011.59.13%E2%80%AFPM.png)
 
 ## Table of Contents
 
