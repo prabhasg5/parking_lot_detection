@@ -2,9 +2,10 @@
 
 A web application that analyzes parking lot images to determine total parking spaces, occupied spaces, and available spaces.
 
-**Live Demo:** 
+**Live Demo:** https://parking-lot-analyzer.onrender.com
 
-
+## Working screenshot:
+![Parking Lot](Screenshot 2025-05-20 at 11.59.13 PM.png)
 
 ## Table of Contents
 
@@ -151,7 +152,7 @@ The frontend interface featuring:
 
 The application is deployed on Render. You can access it here:
 
-**Live Demo:** 
+**Live Demo:** https://parking-lot-analyzer.onrender.com
 
 ### Deployment Environment
 
