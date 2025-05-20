@@ -36,6 +36,21 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             display: none;
         }
+        .error-box {
+            background-color: #fff8f8;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 5px;
+        }
+        .info-tip {
+            background-color: #f8f9fa;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
         .results-heading {
             margin-bottom: 20px;
             border-bottom: 1px solid #dee2e6;
@@ -113,6 +128,10 @@
         <div class="upload-box">
             <h3>Upload Image</h3>
             <p>Select or drag and drop a parking lot image to analyze</p>
+            
+            <div class="info-tip">
+                <p><strong>Best results:</strong> Upload clear images of parking lots with visible parking spaces and cars. The analysis works best with overhead or angled views where parking spaces are clearly visible.</p>
+            </div>
             
             <div class="dropzone" id="drop-area">
                 <p><i class="bi bi-cloud-arrow-up"></i> Drop your image here or click to browse</p>
@@ -197,15 +216,13 @@
             const analyzeNewBtn = document.getElementById('analyze-new-btn');
             const errorMessageEl = document.getElementById('error-message');
             
-            // Open file dialog when clicking on dropzone
             dropArea.addEventListener('click', () => {
                 fileInput.click();
             });
             
-            // Handle file selection
+            
             fileInput.addEventListener('change', handleFiles);
             
-            // Handle drag and drop events
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
                 dropArea.addEventListener(eventName, preventDefaults, false);
             });
@@ -231,7 +248,7 @@
                 dropArea.classList.remove('dragover');
             }
             
-            // Handle dropped files
+           
             dropArea.addEventListener('drop', (e) => {
                 const dt = e.dataTransfer;
                 const files = dt.files;
@@ -241,7 +258,7 @@
             function handleFiles(files) {
                 errorMessageEl.style.display = 'none';
                 
-                // If it's an input event, get the files
+                
                 let fileList = files;
                 if (files.target && files.target.files) {
                     fileList = files.target.files;
@@ -251,13 +268,13 @@
                 
                 const file = fileList[0];
                 
-                // Check if it's an image
+                
                 if (!file.type.match('image.*')) {
                     showError('Please select an image file (JPG, PNG, etc.)');
                     return;
                 }
                 
-                // Show preview
+             
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     previewImage.src = e.target.result;
@@ -266,14 +283,14 @@
                 reader.readAsDataURL(file);
             }
             
-            // Change image button
+            
             changeImageBtn.addEventListener('click', () => {
                 previewContainer.style.display = 'none';
                 fileInput.value = '';
                 previewImage.src = '';
             });
             
-            // Analyze button
+           
             analyzeBtn.addEventListener('click', () => {
                 if (!fileInput.files.length) {
                     showError('Please select an image first');
@@ -284,10 +301,10 @@
                 const formData = new FormData();
                 formData.append('file', file);
                 
-                // Show loading
+               
                 loadingEl.style.display = 'block';
                 
-                // Send the image to the server
+               
                 fetch('/analyze', {
                     method: 'POST',
                     body: formData
@@ -298,27 +315,36 @@
                     
                     if (data.error) {
                         showError(data.error);
+                        
+                       
+                        if (data.message) {
+                            const errorEl = document.getElementById('error-message');
+                            errorEl.innerHTML = `<strong>${data.error}</strong><br>${data.message}`;
+                            
+                            
+                            errorEl.innerHTML += `<p class="mt-2">Please try uploading a clear image of a parking lot with visible parking spaces.</p>`;
+                        }
                         return;
                     }
                     
-                    // Display results
+                   
                     resultsBox.style.display = 'block';
                     totalSlotsEl.textContent = data.total_slots;
                     occupiedSlotsEl.textContent = data.occupied_slots;
                     availableSlotsEl.textContent = data.available_slots;
                     
-                    // Add image info if available
+                   
                     if (data.image_info) {
                         const infoText = `Image size: ${data.image_info.width}x${data.image_info.height} pixels (${data.image_info.size_kb} KB)`;
                         document.getElementById('image-info').textContent = infoText;
                         document.getElementById('image-info').style.display = 'block';
                     }
                     
-                    // Set the CSV download link
+                    
                     csvLinkEl.href = '/results/' + data.csv_file;
                     csvLinkEl.textContent = 'Download CSV Results';
                     
-                    // Scroll to results
+                    
                     resultsBox.scrollIntoView({ behavior: 'smooth' });
                 })
                 .catch(error => {
@@ -328,19 +354,20 @@
                 });
             });
             
-            // Analyze new button
+            
             analyzeNewBtn.addEventListener('click', () => {
                 resultsBox.style.display = 'none';
                 previewContainer.style.display = 'none';
                 fileInput.value = '';
                 previewImage.src = '';
                 
-                // Scroll to top
+               
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             });
             
             function showError(message) {
-                errorMessageEl.textContent = message;
+                errorMessageEl.innerHTML = message;
+                errorMessageEl.className = 'error-box';
                 errorMessageEl.style.display = 'block';
             }
         });
